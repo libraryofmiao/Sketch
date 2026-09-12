@@ -61,6 +61,8 @@ jobs:
           if not photos:
               raise SystemExit("No PNG photos found in photo/")
 
+          TARGET_SIZE = (1200, 850)
+
           for src in photos:
               image = Image.open(src).convert("RGBA")
               gray = ImageOps.grayscale(image)
@@ -85,11 +87,10 @@ jobs:
               alpha = alpha.crop(bbox)
               image.putalpha(alpha)
 
-              # Standardize the rendered resolution without distorting or cropping artwork.
-              width, height = image.size
-              scale = 1200 / max(width, height)
-              size = (round(width * scale), round(height * scale))
-              image = image.resize(size, Image.Resampling.LANCZOS)
+              # Every page gets exactly the same dimensions. The resize is anchored
+              # to the artwork's center and intentionally stretches each page to the
+              # same horizontal and vertical frame used by the animation.
+              image = image.resize(TARGET_SIZE, Image.Resampling.LANCZOS)
 
               image.save(
                   output / f"{src.stem}.webp",
@@ -98,7 +99,7 @@ jobs:
                   method=6,
               )
 
-          print(f"Processed {len(photos)} artwork pages")
+          print(f"Processed {len(photos)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]}")
           PY
 
       - name: Replace Sketchbook artwork with processed photos
