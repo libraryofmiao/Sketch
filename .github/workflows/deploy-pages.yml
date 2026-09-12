@@ -31,11 +31,37 @@ jobs:
 
       - name: Copy ThreeUI runtime files
         run: |
-          mkdir -p public/assets public/landing-pages
+          mkdir -p public/assets public/landing-pages public/photo
           cp -R node_modules/@designcodeio/threeui/lib-dist/assets/. public/assets/
           if [ -d node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages ]; then
             cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
           fi
+          cp -R photo/. public/photo/
+
+      - name: Replace Sketchbook artwork with uploaded photos
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          page = Path("public/landing-pages/meng-to-sketchbook.html")
+          text = page.read_text(encoding="utf-8")
+          photos = sorted(Path("public/photo").glob("*.png"), key=lambda p: p.name)
+          if not photos:
+              raise SystemExit("No PNG photos found in public/photo")
+
+          entries = ",\n".join(
+              f"  {{file:'../../photo/{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
+              for i, p in enumerate(photos, 1)
+          )
+          replacement = "const DIR='../../photo/';\nconst PAGES=[\n" + entries + "\n];"
+          pattern = r"const DIR='[^']*';\s*const PAGES=\[.*?\];"
+          updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit("Could not locate the Sketchbook PAGES definition")
+          page.write_text(updated, encoding="utf-8")
+          print(f"Configured {len(photos)} Sketchbook pages")
+          PY
 
       - name: Build
         run: npm run build
