@@ -33,15 +33,7 @@ jobs:
         run: |
           mkdir -p public/assets public/landing-pages
           cp -R node_modules/@designcodeio/threeui/lib-dist/assets/. public/assets/
-          if [ -d node_modules/@designcodeio/threeui/lib-dist/landing-pages ]; then
-            cp -R node_modules/@designcodeio/threeui/lib-dist/landing-pages/. public/landing-pages/
-          elif [ -d node_modules/@designcodeio/threeui/lib-dist/landing-pages ]; then
-            cp -R node_modules/@designcodeio/threeui/lib-dist/landing-pages/. public/landing-pages/
-          else
-            echo "Landing-page runtime directory not found"
-            find node_modules/@designcodeio/threeui/lib-dist -maxdepth 2 -type f | head -100
-            exit 1
-          fi
+          cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
 
       - name: Build
         run: npm run build
