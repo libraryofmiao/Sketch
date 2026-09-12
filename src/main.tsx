@@ -1,31 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import ReactDOM from "react-dom/client";
-import { MengToSketchbookLandingPage } from "@designcodeio/threeui";
-import "@designcodeio/threeui/style.css";
 import "./index.css";
 
 function App() {
-  const [srcDoc, setSrcDoc] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}landing-pages/meng-to-sketchbook.html`)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Unable to load sketchbook: ${response.status}`);
-        return response.text();
-      })
-      .then(setSrcDoc)
-      .catch((error) => {
-        console.error(error);
-        setSrcDoc(`<body style="font-family: sans-serif; padding: 2rem;">${error.message}</body>`);
-      });
-  }, []);
-
-  if (!srcDoc) return <div className="loading">Loading Sketchbook…</div>;
+  const sketchbookUrl = `${import.meta.env.BASE_URL}landing-pages/meng-to-sketchbook.html`;
 
   return (
-    <div className="shader-frame">
-      <MengToSketchbookLandingPage srcDoc={srcDoc} />
-    </div>
+    <main className="sketchbook-host">
+      <iframe
+        className="sketchbook-frame"
+        src={sketchbookUrl}
+        title="Meng To Singapore Sketchbook"
+        allow="fullscreen"
+      />
+    </main>
   );
 }
 
