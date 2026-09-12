@@ -51,10 +51,10 @@ jobs:
               raise SystemExit("No PNG photos found in public/photo")
 
           entries = ",\n".join(
-              f"  {{file:'../../photo/{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
+              f"  {{file:'../photo/{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
               for i, p in enumerate(photos, 1)
           )
-          replacement = "const DIR='../../photo/';\nconst PAGES=[\n" + entries + "\n];"
+          replacement = "const DIR='../photo/';\nconst PAGES=[\n" + entries + "\n];"
           pattern = r"const DIR='[^']*';\s*const PAGES=\[.*?\];"
           updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
           if count != 1:
