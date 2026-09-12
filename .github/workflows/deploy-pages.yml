@@ -26,8 +26,15 @@ jobs:
         with:
           node-version: 20
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install
+          python -m pip install Pillow
 
       - name: Copy ThreeUI runtime files
         run: |
@@ -36,9 +43,65 @@ jobs:
           if [ -d node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages ]; then
             cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
           fi
-          cp -R photo/. public/photo/
 
-      - name: Replace Sketchbook artwork with uploaded photos
+      - name: Crop and standardize uploaded artwork
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageDraw, ImageOps
+
+          source = Path("photo")
+          output = Path("public/photo")
+          output.mkdir(parents=True, exist_ok=True)
+          for old in output.iterdir():
+              if old.is_file():
+                  old.unlink()
+
+          photos = sorted(source.glob("*.png"), key=lambda p: p.name)
+          if not photos:
+              raise SystemExit("No PNG photos found in photo/")
+
+          for src in photos:
+              image = Image.open(src).convert("RGBA")
+              gray = ImageOps.grayscale(image)
+              mask = gray.point(lambda p: 0 if p < 65 else 255, mode="L")
+
+              # Remove the dark background connected to the image edges.
+              for point in (
+                  (0, 0),
+                  (gray.width - 1, 0),
+                  (0, gray.height - 1),
+                  (gray.width - 1, gray.height - 1),
+              ):
+                  if mask.getpixel(point) == 0:
+                      ImageDraw.floodfill(mask, point, 128, thresh=0)
+
+              alpha = mask.point(lambda p: 0 if p == 128 else 255, mode="L")
+              bbox = alpha.getbbox()
+              if not bbox:
+                  raise SystemExit(f"Could not detect artwork page in {src.name}")
+
+              image = image.crop(bbox)
+              alpha = alpha.crop(bbox)
+              image.putalpha(alpha)
+
+              # Standardize the rendered resolution without distorting or cropping artwork.
+              width, height = image.size
+              scale = 1200 / max(width, height)
+              size = (round(width * scale), round(height * scale))
+              image = image.resize(size, Image.Resampling.LANCZOS)
+
+              image.save(
+                  output / f"{src.stem}.webp",
+                  "WEBP",
+                  quality=90,
+                  method=6,
+              )
+
+          print(f"Processed {len(photos)} artwork pages")
+          PY
+
+      - name: Replace Sketchbook artwork with processed photos
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -46,9 +109,9 @@ jobs:
 
           page = Path("public/landing-pages/meng-to-sketchbook.html")
           text = page.read_text(encoding="utf-8")
-          photos = sorted(Path("public/photo").glob("*.png"), key=lambda p: p.name)
+          photos = sorted(Path("public/photo").glob("*.webp"), key=lambda p: p.name)
           if not photos:
-              raise SystemExit("No PNG photos found in public/photo")
+              raise SystemExit("No processed WebP photos found in public/photo")
 
           entries = ",\n".join(
               f"  {{file:'{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
