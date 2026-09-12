@@ -33,10 +33,17 @@ jobs:
         run: |
           mkdir -p public/assets public/landing-pages
           cp -R node_modules/@designcodeio/threeui/lib-dist/assets/. public/assets/
-          cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
+          if [ -d node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages ]; then
+            cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
+          fi
 
       - name: Build
         run: npm run build
+
+      - name: Fix project-site iframe URLs
+        run: |
+          find dist/assets -type f -name '*.js' -print0 | xargs -0 sed -i 's#"/landing-pages/#"/Sketch/landing-pages/#g'
+          find dist/assets -type f -name '*.js' -print0 | xargs -0 sed -i 's#\x27/landing-pages/#\x27/Sketch/landing-pages/#g'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
