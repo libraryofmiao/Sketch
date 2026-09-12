@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sketch — Ideas in Motion</title>
+  <meta name="description" content="Sketch is a playful space for ideas, motion, and creative experiments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <nav class="nav">
+    <a class="brand" href="#top"><span class="brand-mark">✳</span> sketch</a>
+    <div class="nav-links"><a href="#about">About</a><a href="#work">Experiments</a><a href="#contact">Contact</a></div>
+    <a class="nav-pill" href="#work">Explore <span>↗</span></a>
+  </nav>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> A small studio for big ideas</p>
+        <h1>Make room<br />for <em>imagination.</em></h1>
+        <p class="intro">Sketch is a living collection of visual experiments, playful interfaces, and ideas that refuse to stay still.</p>
+        <div class="hero-actions"><a class="button primary" href="#work">See the work <span>↗</span></a><a class="text-link" href="#about">What is Sketch? <span>↓</span></a></div>
+      </div>
+      <div class="hero-art" aria-label="Animated abstract sketch">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="scribble">✳</div><div class="floating-card card-a">ideas<br /><strong>in motion</strong></div><div class="floating-card card-b">01 / 04</div>
+        <canvas id="canvas"></canvas>
+      </div>
+    </section>
+
+    <section class="ticker"><div>DRAW · PLAY · BUILD · REPEAT · </div><div>DRAW · PLAY · BUILD · REPEAT · </div></section>
+
+    <section class="about section" id="about"><p class="section-label">01 — The idea</p><div><h2>Not everything needs<br />to be <span>finished.</span></h2><p class="section-text">Some things are better left open. Sketch is where unfinished thoughts become shapes, where curiosity becomes interaction, and where the next idea starts before the last one ends.</p></div></section>
+
+    <section class="work section" id="work"><div class="work-head"><p class="section-label">02 — Experiments</p><p class="muted">A few things from the notebook</p></div><div class="grid"><article class="project project-large"><div class="project-visual visual-yellow"><span class="project-symbol">◒</span><span class="project-number">01</span></div><div class="project-meta"><h3>Soft Systems</h3><span>Identity / Motion</span></div></article><article class="project"><div class="project-visual visual-blue"><span class="project-symbol">⌁</span><span class="project-number">02</span></div><div class="project-meta"><h3>Quiet Noise</h3><span>Web / Interaction</span></div></article><article class="project"><div class="project-visual visual-pink"><span class="project-symbol">✳</span><span class="project-number">03</span></div><div class="project-meta"><h3>Small Wonders</h3><span>Art / Objects</span></div></article></div></section>
+
+    <section class="contact section" id="contact"><p class="section-label">03 — Say hello</p><div><h2>Have a thought?<br /><a href="mailto:hello@sketch.studio">Let's make it <span>move.</span> ↗</a></h2></div></section>
+  </main>
+
+  <footer><span>© 2026 Sketch Studio</span><span>Made with curiosity.</span><a href="#top">Back to top ↑</a></footer>
+  <script src="./script.js"></script>
+</body>
+</html>
