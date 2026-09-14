@@ -36,17 +36,10 @@ jobs:
           npm install
           python -m pip install Pillow
 
-      - name: Copy ThreeUI runtime files
-        run: |
-          mkdir -p public/assets public/landing-pages public/photo
-          cp -R node_modules/@designcodeio/threeui/lib-dist/assets/. public/assets/
-          if [ -d node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages ]; then
-            cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
-          fi
-
-      - name: Crop and optimize uploaded artwork
+      - name: Crop, optimize and catalog artwork
         run: |
           python3 - <<'PY'
+          import json
           from pathlib import Path
           from PIL import Image, ImageDraw, ImageOps
 
@@ -57,11 +50,15 @@ jobs:
               if old.is_file():
                   old.unlink()
 
-          photos = sorted(source.glob("*.png"), key=lambda p: p.name)
+          def sort_key(p):
+              return (0, int(p.stem)) if p.stem.isdigit() else (1, p.stem)
+
+          photos = sorted(source.glob("*.png"), key=sort_key)
           if not photos:
               raise SystemExit("No PNG photos found in photo/")
 
           TARGET_SIZE = (1200, 850)
+          saved = []
 
           for src in photos:
               image = Image.open(src).convert("RGBA")
@@ -87,70 +84,28 @@ jobs:
               image.putalpha(alpha)
               image = image.resize(TARGET_SIZE, Image.Resampling.LANCZOS)
 
+              filename = f"{src.stem}.webp"
               image.save(
-                  output / f"{src.stem}.webp",
+                  output / filename,
                   "WEBP",
                   quality=82,
                   method=6,
               )
+              saved.append(filename)
 
-          print(f"Processed {len(photos)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]} in optimized WebP")
-          PY
-
-      - name: Replace Sketchbook artwork with optimized photos
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          page = Path("public/landing-pages/meng-to-sketchbook.html")
-          text = page.read_text(encoding="utf-8")
-          photos = sorted(Path("public/photo").glob("*.webp"), key=lambda p: p.name)
-          if not photos:
-              raise SystemExit("No processed WebP photos found in public/photo")
-
-          # Give the embedded document its own final title instead of the original ThreeUI/Meng To title.
-          text, title_count = re.subn(
-              r"<title>.*?</title>",
-              "<title>A M Tripathi</title>",
-              text,
-              count=1,
-              flags=re.S | re.I,
+          manifest = {
+              "title": "A M Tripathi",
+              "photos": saved,
+          }
+          Path("public/photo-manifest.json").write_text(
+              json.dumps(manifest, indent=2), encoding="utf-8"
           )
-          if title_count != 1:
-              raise SystemExit("Could not locate the embedded Sketchbook title")
 
-          entries = ",\n".join(
-              f"  {{file:'{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
-              for i, p in enumerate(photos, 1)
-          )
-          replacement = "const DIR='../photo/';\nconst PAGES=[\n" + entries + "\n];"
-          pattern = r"const DIR='[^']*';\s*const PAGES=\[.*?\];"
-          updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
-          if count != 1:
-              raise SystemExit("Could not locate the Sketchbook PAGES definition")
-
-          # The original opening riffle ends on page index LAND. Set LAND to zero so it completes the full riffle and settles back on Photo 1.
-          updated, land_count = re.subn(
-              r"const M=PAGES\.length, LAND=\d+;",
-              "const M=PAGES.length, LAND=0;",
-              updated,
-              count=1,
-          )
-          if land_count != 1:
-              raise SystemExit("Could not locate the Sketchbook intro LAND setting")
-
-          page.write_text(updated, encoding="utf-8")
-          print(f"Configured {len(photos)} optimized Sketchbook pages; intro returns to Photo 1")
+          print(f"Processed {len(saved)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]} in optimized WebP")
           PY
 
       - name: Build
         run: npm run build
-
-      - name: Fix project-site iframe URLs
-        run: |
-          find dist/assets -type f -name '*.js' -print0 | xargs -0 sed -i 's#"/landing-pages/#"/Sketch/landing-pages/#g'
-          find dist/assets -type f -name '*.js' -print0 | xargs -0 sed -i 's#\x27/landing-pages/#\x27/Sketch/landing-pages/#g'
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
