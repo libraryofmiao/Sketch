@@ -36,10 +36,17 @@ jobs:
           npm install
           python -m pip install Pillow
 
-      - name: Crop, optimize and catalog artwork
+      - name: Prepare authentic ThreeUI sketchbook
+        run: |
+          set -euo pipefail
+          mkdir -p public/landing-pages
+          cp node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/meng-to-sketchbook.html public/landing-pages/meng-to-sketchbook.html
+          cp -R node_modules/@designcodeio/threeui/lib-dist/assets/sketchbook public/landing-pages/sketchbook
+
+      - name: Optimize artwork and wire it into ThreeUI
         run: |
           python3 - <<'PY'
-          import json
+          import re
           from pathlib import Path
           from PIL import Image, ImageDraw, ImageOps
 
@@ -85,23 +92,54 @@ jobs:
               image = image.resize(TARGET_SIZE, Image.Resampling.LANCZOS)
 
               filename = f"{src.stem}.webp"
-              image.save(
-                  output / filename,
-                  "WEBP",
-                  quality=82,
-                  method=6,
-              )
+              image.save(output / filename, "WEBP", quality=82, method=6)
               saved.append(filename)
 
-          manifest = {
-              "title": "A M Tripathi",
-              "photos": saved,
-          }
-          Path("public/photo-manifest.json").write_text(
-              json.dumps(manifest, indent=2), encoding="utf-8"
+          html_path = Path("public/landing-pages/meng-to-sketchbook.html")
+          text = html_path.read_text(encoding="utf-8")
+
+          text = re.sub(
+              r"<title>.*?</title>",
+              "<title>A M Tripathi</title>",
+              text,
+              count=1,
+              flags=re.S | re.I,
           )
 
-          print(f"Processed {len(saved)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]} in optimized WebP")
+          pages = "const PAGES=[\n" + "".join(
+              f"  {{file:'{name}',title:'A M Tripathi',place:'Sketchbook'}},\n"
+              for name in saved
+          ) + "];"
+          text, page_count = re.subn(
+              r"const PAGES=\[.*?\];",
+              pages,
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if page_count != 1:
+              raise SystemExit("Could not locate ThreeUI PAGES definition")
+
+          text, dir_count = re.subn(
+              r"const DIR='[^']*';",
+              "const DIR='../photo/';",
+              text,
+              count=1,
+          )
+          if dir_count != 1:
+              raise SystemExit("Could not locate ThreeUI image directory")
+
+          text, land_count = re.subn(
+              r"const M=PAGES\.length, LAND=\d+;",
+              "const M=PAGES.length, LAND=0;",
+              text,
+              count=1,
+          )
+          if land_count != 1:
+              raise SystemExit("Could not locate ThreeUI LAND setting")
+
+          html_path.write_text(text, encoding="utf-8")
+          print(f"Wired {len(saved)} optimized artwork pages into authentic ThreeUI animation")
           PY
 
       - name: Build
