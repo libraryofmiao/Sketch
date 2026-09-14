@@ -100,14 +100,22 @@ jobs:
 
           text = re.sub(
               r"<title>.*?</title>",
-              "<title>A M Tripathi</title>",
+              "<title>A M Tripahi</title>",
               text,
               count=1,
               flags=re.S | re.I,
           )
 
+          text = re.sub(
+              r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
+              "admin@miaolibrary.com",
+              text,
+          )
+
+          text = text.replace("A M Tripathi", "A M Tripahi")
+
           pages = "const PAGES=[\n" + "".join(
-              f"  {{file:'{name}',title:'A M Tripathi',place:'Sketchbook'}},\n"
+              f"  {{file:'{name}',title:'A M Tripahi',place:'Sketchbook'}},\n"
               for name in saved
           ) + "];"
           text, page_count = re.subn(
