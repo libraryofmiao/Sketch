@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@designcodeio/threeui": "0.3.0",
     "react": "latest",
     "react-dom": "latest"
   },
