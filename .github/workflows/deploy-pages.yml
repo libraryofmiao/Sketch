@@ -109,6 +109,18 @@ jobs:
           if not photos:
               raise SystemExit("No processed WebP photos found in public/photo")
 
+          # Give the embedded document its own final title instead of the
+          # original ThreeUI/Meng To title.
+          text, title_count = re.subn(
+              r"<title>.*?</title>",
+              "<title>A M Tripathi — Sketchbook</title>",
+              text,
+              count=1,
+              flags=re.S | re.I,
+          )
+          if title_count != 1:
+              raise SystemExit("Could not locate the embedded Sketchbook title")
+
           entries = ",\n".join(
               f"  {{file:'{p.name}', title:'NALC Miao · Photo {i:02d}', place:'Miao'}}"
               for i, p in enumerate(photos, 1)
