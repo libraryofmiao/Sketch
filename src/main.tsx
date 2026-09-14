@@ -12,6 +12,7 @@ function App() {
         src={sketchbookUrl}
         title="Meng To Singapore Sketchbook"
         allow="fullscreen"
+        loading="eager"
       />
     </main>
   );
