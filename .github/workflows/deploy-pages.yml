@@ -44,7 +44,7 @@ jobs:
             cp -R node_modules/@designcodeio/threeui/lib-dist/assets/landing-pages/. public/landing-pages/
           fi
 
-      - name: Crop and standardize uploaded artwork
+      - name: Crop and optimize uploaded artwork
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -68,7 +68,6 @@ jobs:
               gray = ImageOps.grayscale(image)
               mask = gray.point(lambda p: 0 if p < 65 else 255, mode="L")
 
-              # Remove the dark background connected to the image edges.
               for point in (
                   (0, 0),
                   (gray.width - 1, 0),
@@ -86,23 +85,19 @@ jobs:
               image = image.crop(bbox)
               alpha = alpha.crop(bbox)
               image.putalpha(alpha)
-
-              # Every page gets exactly the same dimensions. The resize is anchored
-              # to the artwork's center and intentionally stretches each page to the
-              # same horizontal and vertical frame used by the animation.
               image = image.resize(TARGET_SIZE, Image.Resampling.LANCZOS)
 
               image.save(
                   output / f"{src.stem}.webp",
                   "WEBP",
-                  quality=90,
+                  quality=82,
                   method=6,
               )
 
-          print(f"Processed {len(photos)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]}")
+          print(f"Processed {len(photos)} artwork pages at {TARGET_SIZE[0]}x{TARGET_SIZE[1]} in optimized WebP")
           PY
 
-      - name: Replace Sketchbook artwork with processed photos
+      - name: Replace Sketchbook artwork with optimized photos
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -124,7 +119,7 @@ jobs:
           if count != 1:
               raise SystemExit("Could not locate the Sketchbook PAGES definition")
           page.write_text(updated, encoding="utf-8")
-          print(f"Configured {len(photos)} Sketchbook pages")
+          print(f"Configured {len(photos)} optimized Sketchbook pages")
           PY
 
       - name: Build
