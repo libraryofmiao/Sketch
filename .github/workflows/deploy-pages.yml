@@ -109,11 +109,10 @@ jobs:
           if not photos:
               raise SystemExit("No processed WebP photos found in public/photo")
 
-          # Give the embedded document its own final title instead of the
-          # original ThreeUI/Meng To title.
+          # Give the embedded document its own final title instead of the original ThreeUI/Meng To title.
           text, title_count = re.subn(
               r"<title>.*?</title>",
-              "<title>A M Tripathi — Sketchbook</title>",
+              "<title>A M Tripathi</title>",
               text,
               count=1,
               flags=re.S | re.I,
@@ -131,8 +130,7 @@ jobs:
           if count != 1:
               raise SystemExit("Could not locate the Sketchbook PAGES definition")
 
-          # The original opening riffle ends on page index LAND. Set LAND to
-          # zero so it completes the full riffle and settles back on Photo 1.
+          # The original opening riffle ends on page index LAND. Set LAND to zero so it completes the full riffle and settles back on Photo 1.
           updated, land_count = re.subn(
               r"const M=PAGES\.length, LAND=\d+;",
               "const M=PAGES.length, LAND=0;",
