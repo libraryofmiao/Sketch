@@ -118,8 +118,20 @@ jobs:
           updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
           if count != 1:
               raise SystemExit("Could not locate the Sketchbook PAGES definition")
+
+          # The original opening riffle ends on page index LAND. Set LAND to
+          # zero so it completes the full riffle and settles back on Photo 1.
+          updated, land_count = re.subn(
+              r"const M=PAGES\.length, LAND=\d+;",
+              "const M=PAGES.length, LAND=0;",
+              updated,
+              count=1,
+          )
+          if land_count != 1:
+              raise SystemExit("Could not locate the Sketchbook intro LAND setting")
+
           page.write_text(updated, encoding="utf-8")
-          print(f"Configured {len(photos)} optimized Sketchbook pages")
+          print(f"Configured {len(photos)} optimized Sketchbook pages; intro returns to Photo 1")
           PY
 
       - name: Build
