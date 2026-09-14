@@ -10,7 +10,7 @@ function App() {
       <iframe
         className="sketchbook-frame"
         src={sketchbookUrl}
-        title="A M Tripathi Sketchbook"
+        title="A M Tripahi Sketchbook"
         allow="fullscreen"
         loading="eager"
       />
