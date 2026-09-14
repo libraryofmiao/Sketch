@@ -55,7 +55,24 @@ body,
   min-height: 0;
 }
 
+.sketchbook__stage {
+  position: relative;
+  max-width: 100%;
+  max-height: 78vh;
+  perspective: 2200px;
+  opacity: 0;
+  transform: rotateY(-90deg);
+  transform-origin: left center;
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+.sketchbook__stage--entered {
+  opacity: 1;
+  transform: rotateY(0deg);
+}
+
 .sketchbook__page {
+  display: block;
   max-width: 100%;
   max-height: 78vh;
   object-fit: contain;
@@ -68,6 +85,47 @@ body,
 .sketchbook__page--zoomed {
   cursor: zoom-out;
   transform: scale(1.4);
+}
+
+.sketchbook__page--flip {
+  position: absolute;
+  inset: 0;
+  cursor: default;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.sketchbook__page--flip-next {
+  transform-origin: left center;
+  animation: page-flip-next 0.5s ease-in forwards;
+}
+
+.sketchbook__page--flip-prev {
+  transform-origin: right center;
+  animation: page-flip-prev 0.5s ease-in forwards;
+}
+
+@keyframes page-flip-next {
+  from {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(-130deg);
+    opacity: 0;
+  }
+}
+
+@keyframes page-flip-prev {
+  from {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotateY(130deg);
+    opacity: 0;
+  }
 }
 
 .sketchbook__nav {
